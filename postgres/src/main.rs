@@ -20,15 +20,15 @@ async fn main() -> Result<(), sqlx::Error> {
     //     println!("环境变量内容：{}: {}", key, value);
     // }
 
-    let connection_str = env::var("DATABASE_URL")
+    let database_url = env::var("DATABASE_URL")
         .expect("数据库连接字符串获取失败，请检查env文件是否已配置数据库连接字符串");
 
-    println!("数据库连接字符串是：{}", connection_str);
+    println!("数据库连接字符串是：{}", database_url);
 
     let pool = PgPoolOptions::new()
         .max_connections(5)
         // .connect("postgres://cml:123456@192.168.1.239:5432/rust_sqlx")
-        .connect(&connection_str)
+        .connect(&database_url)
         .await?;
 
     println!("db_pool is : {:?}", pool);
@@ -43,7 +43,7 @@ async fn main() -> Result<(), sqlx::Error> {
             id: row.id,
             teacher_id: row.teacher_id,
             name: row.name,
-            time: row.time,
+            time: Some(chrono::NaiveDateTime::from(row.time.unwrap())),
         })
     }
 
@@ -59,7 +59,7 @@ async fn main() -> Result<(), sqlx::Error> {
             id: row.id,
             teacher_id: row.teacher_id,
             name: row.name,
-            time: row.time,
+            time: Some(chrono::NaiveDateTime::from(row.time.unwrap())),
         })
     }
     println!("查询单个{:#?}", vec2);
@@ -75,7 +75,7 @@ async fn main() -> Result<(), sqlx::Error> {
     // .await?;
     //更新
 
-    let _update = sqlx::query!(r#"update  course set name=$1"#, "ogg")
+    let _update = sqlx::query!(r#"update course set name=$1"#, "ogg")
         .fetch_all(&pool)
         .await?;
     Ok(())
